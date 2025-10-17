@@ -1,0 +1,63 @@
+graph TD
+    subgraph "1. Entrée Utilisateur"
+        A[Utilisateur<br>(Mobile/Web)]
+    end
+
+    subgraph "Flux Global"
+        A --> B[Route 53<br>(DNS Global)]
+        B --> C[CloudFront<br>(CDN)]
+    end
+
+    subgraph "2. Edge Computing (AWS Wavelength Zone - Dakar)"
+        C --> D{Wavelength Zone Dakar<br>(Orange Sénégal)}
+        D --> E[EC2 Edge Compute<br>(API Gateway Local / Proxy React)]
+    end
+
+    subgraph "3. Région Principale (AWS Paris - eu-west-3)"
+        subgraph "VPC Principal Paris"
+            F[Application Load Balancer<br>(ALB - Public Subnet)]
+            F --> G[EC2 Instances<br>(Auto Scaling Group)<br>Backend Django API<br>(Private Subnet)]
+            G --> H[RDS PostgreSQL<br>(Multi-AZ)<br>(Private Subnet)]
+            G --> I[ElastiCache Redis<br>(Cluster Mode)<br>(Private Subnet)]
+            J[S3 Bucket<br>(Assets Statiques / Sauvegardes)]
+            J -. Stockage pour CloudFront .-> C
+            J -. Accès par EC2 .-> G
+        end
+
+        subgraph "4. Observabilité & Sécurité"
+            K[CloudWatch<br>(Métriques, Logs)]
+            L[CloudTrail<br>(Audit IAM)]
+            M[KMS<br>(Chiffrement)]
+            N[AWS WAF + Shield<br>(DDoS / Filtrage)]
+            O[IAM<br>(RBAC)]
+        end
+
+        subgraph "5. CI/CD & DevOps"
+            P[CodeCommit / GitHub<br>(Dépôt de code)]
+            P --> Q[CodePipeline<br>(Orchestrateur CI/CD)]
+            Q --> R[CodeBuild<br>(Compilation / Tests)]
+            R --> S[CodeDeploy<br>(Déploiement Blue/Green)]
+            S -. Déploiement vers .-> G
+        end
+    end
+
+    subgraph "6. Liaison Dakar <-> Paris"
+        E -- Requêtes critiques<br>via VPN/PrivateLink --> F
+    end
+
+    style A fill:#D4E6F1,stroke:#3498DB,stroke-width:2px,color:#2C3E50
+    style D fill:#D6EAF8,stroke:#5DADE2,stroke-width:2px,color:#2C3E50
+    style F fill:#E8F8F5,stroke:#2ECC71,stroke-width:2px,color:#2C3E50
+    style G fill:#E8F8F5,stroke:#2ECC71,stroke-width:2px,color:#2C3E50
+    style H fill:#E8F8F5,stroke:#2ECC71,stroke-width:2px,color:#2C3E50
+    style I fill:#E8F8F5,stroke:#2ECC71,stroke-width:2px,color:#2C3E50
+    style J fill:#FADBD8,stroke:#E74C3C,stroke-width:2px,color:#2C3E50
+    style K fill:#F9E795,stroke:#F4D03F,stroke-width:2px,color:#2C3E50
+    style L fill:#F9E795,stroke:#F4D03F,stroke-width:2px,color:#2C3E50
+    style M fill:#F9E795,stroke:#F4D03F,stroke-width:2px,color:#2C3E50
+    style N fill:#F9E795,stroke:#F4D03F,stroke-width:2px,color:#2C3E50
+    style O fill:#F9E795,stroke:#F4D03F,stroke-width:2px,color:#2C3E50
+    style P fill:#D5F5E3,stroke:#28B463,stroke-width:2px,color:#2C3E50
+    style Q fill:#D5F5E3,stroke:#28B463,stroke-width:2px,color:#2C3E50
+    style R fill:#D5F5E3,stroke:#28B463,stroke-width:2px,color:#2C3E50
+    style S fill:#D5F5E3,stroke:#28B463,stroke-width:2px,color:#2C3E50
